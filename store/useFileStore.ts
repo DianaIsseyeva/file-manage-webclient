@@ -1,22 +1,33 @@
-// src/store/useFileStore.ts
-
 import { create } from 'zustand';
 
+/**
+ * Interface for a preview entry.
+ */
+export interface Preview {
+  file: File;
+  previewUrl: string;
+}
+
+/**
+ * State interface for file-related data.
+ */
 export interface FileState {
-  // Indicates whether a file upload is in progress.
+  // Flag indicating if a file upload is in progress.
   uploading: boolean;
-  // Upload progress in percentage (0 to 100).
+  // Upload progress (0 to 100).
   uploadProgress: number;
-  // List of Data URLs for file previews before upload.
-  previewUrls: string[];
-  // Error message if an error occurs.
+  // List of previews for selected files before upload.
+  previewImages: Preview[];
+  // Error message, if any.
   error: string | null;
-  // JWT token for authentication.
+  // Authentication token (JWT).
   authToken: string | null;
+
   // Setter functions:
   setUploading: (value: boolean) => void;
-  setUploadProgress: (progress: number) => void;
-  setPreviewUrls: (urls: string[]) => void;
+  setUploadProgress: (progress: number | ((prev: number) => number)) => void;
+  addPreviewImage: (preview: Preview) => void;
+  clearPreviewImages: () => void;
   setError: (error: string | null) => void;
   setAuthToken: (token: string | null) => void;
 }
@@ -24,12 +35,17 @@ export interface FileState {
 export const useFileStore = create<FileState>(set => ({
   uploading: false,
   uploadProgress: 0,
-  previewUrls: [],
+  previewImages: [],
   error: null,
   authToken: null,
   setUploading: (value: boolean) => set({ uploading: value }),
-  setUploadProgress: (progress: number) => set({ uploadProgress: progress }),
-  setPreviewUrls: (urls: string[]) => set({ previewUrls: urls }),
+  setUploadProgress: (progress: number | ((prev: number) => number)) =>
+    set(state => ({
+      uploadProgress: typeof progress === 'function' ? progress(state.uploadProgress) : progress,
+    })),
+  addPreviewImage: (preview: Preview) =>
+    set(state => ({ previewImages: [...state.previewImages, preview] })),
+  clearPreviewImages: () => set({ previewImages: [] }),
   setError: (error: string | null) => set({ error }),
   setAuthToken: (token: string | null) => set({ authToken: token }),
 }));

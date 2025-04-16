@@ -71,7 +71,12 @@ const FileList = () => {
       title: 'Uploaded At',
       dataIndex: 'uploadedAt',
       key: 'uploadedAt',
-      render: (date: string) => new Date(date).toLocaleString(),
+      render: (date: string) => {
+        // Если date можно преобразовать в число, то используем его, иначе оставляем оригинальное значение.
+        const timestamp = Number(date);
+        const validDate = isNaN(timestamp) ? new Date(date) : new Date(timestamp);
+        return validDate.toLocaleString();
+      },
     },
     {
       title: 'Actions',
@@ -99,7 +104,7 @@ const FileList = () => {
     try {
       await deleteFile({ variables: { id: selectedFileId } });
       message.success('File deleted successfully');
-      // Refresh the file list
+      // Refresh the file list after deletion
       refetch();
       setIsModalVisible(false);
       setSelectedFileId(null);

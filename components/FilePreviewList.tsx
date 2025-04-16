@@ -1,26 +1,33 @@
 'use client';
 
+import { Image } from 'antd';
 import React from 'react';
-import FilePreview from './FilePreview';
+import type { Preview } from '../store/useFileStore';
 
 /**
- * Props for the FilePreviewList component.
+ * Props for FilePreviewList component.
  */
 interface FilePreviewListProps {
-  files: File[];
+  previews: Preview[];
 }
 
 /**
- * A component that displays a list of image previews.
+ * A component that displays previews of selected files.
  *
- * @param files - An array of File objects to preview.
- * @returns A list of FilePreview components.
+ * @param previews - An array of preview objects containing the file and its Data URL.
+ * @returns A list of image previews.
  */
-const FilePreviewList: React.FC<FilePreviewListProps> = ({ files }) => {
+const FilePreviewList: React.FC<FilePreviewListProps> = ({ previews }) => {
   return (
     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-      {files.map(file => (
-        <FilePreview key={file.name} file={file} />
+      {previews.map((preview, index) => (
+        <Image
+          key={index}
+          src={preview.previewUrl}
+          alt={preview.file.name}
+          width={100}
+          style={{ objectFit: 'contain' }}
+        />
       ))}
     </div>
   );

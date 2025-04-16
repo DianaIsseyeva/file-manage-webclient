@@ -1,13 +1,11 @@
 'use client';
 
-import { Form, Input, Button, message } from 'antd';
 import { gql, useMutation } from '@apollo/client';
+import { Button, Form, Input, message } from 'antd';
 import { useRouter } from 'next/navigation';
 import { useFileStore } from '../store/useFileStore';
 
-/**
- * GraphQL mutation for user login.
- */
+// GraphQL mutation for login.
 const LOGIN_MUTATION = gql`
   mutation Login($email: String!, $password: String!) {
     login(email: $email, password: $password) {
@@ -23,9 +21,8 @@ const LOGIN_MUTATION = gql`
 
 /**
  * A login form component.
- *
- * This component renders a form using Ant Design. Upon submission, it calls the login mutation.
- * On successful login, it updates the Zustand store with the JWT token and navigates to the homepage.
+ * Upon successful login, it saves the JWT token in both Zustand and cookies,
+ * then redirects the user to the home page.
  */
 const LoginForm = () => {
   const { setAuthToken } = useFileStore();
@@ -33,10 +30,6 @@ const LoginForm = () => {
   const router = useRouter();
   const [login, { loading }] = useMutation(LOGIN_MUTATION);
 
-  /**
-   * Handles form submission.
-   * @param values - An object with email and password.
-   */
   const onFinish = async (values: { email: string; password: string }) => {
     try {
       const { data } = await login({
@@ -47,8 +40,13 @@ const LoginForm = () => {
       });
       if (data && data.login) {
         message.success('Login successful!');
-        setAuthToken(data.login.token); // Save the token in Zustand
-        router.push('/'); // Redirect to home page (or dashboard)
+        // Save token in Zustand:
+        setAuthToken(data.login.token);
+        // Save token in a cookie (expires in 1 hour):
+        document.cookie = `token=${data.login.token}; Path=/; Max-Age=3600`;
+        setAuthToken(data.login.token);
+        localStorage.setItem('token', data.login.token);
+        router.push('/');
       }
     } catch (err: unknown) {
       const errorMessage =
